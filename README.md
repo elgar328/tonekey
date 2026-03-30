@@ -3,6 +3,7 @@
 A web-based sine wave tone generator for identifying frequencies in live sound environments.
 
 [![Open ToneKey](https://img.shields.io/badge/Open%20ToneKey-8F5A3C?style=for-the-badge&logo=safari&logoColor=white)](https://elgar328.github.io/tonekey/)
+[![Analytics](https://img.shields.io/badge/Analytics-000?style=for-the-badge&logo=umami&logoColor=white)](https://cloud.umami.is/share/KQMHMNvKonEEefNs)
 
 <img src="mockup.webp" alt="ToneKey" width="300">
 
