@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ToneKey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Geist:wght@600&family=IBM+Plex+Mono&family=Inter:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --accent: #8F5A3C;
+  --accent-glow: rgba(143, 90, 60, 0.4);
+  --bg-primary: #1A1A1A;
+  --bg-card-glass: rgba(255, 255, 255, 0.04);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --note-active: rgba(143, 90, 60, 0.2);
+  --note-natural: #2A2420;
+  --note-sharp: #1F1B18;
+  --slider-fill: #C2956A;
+  --slider-track: rgba(255, 255, 255, 0.08);
+  --text-muted: #8A8A8A;
+  --text-primary: #FFFFFF;
+  --text-secondary: #BFA393;
+  --surface-divider: rgba(255, 255, 255, 0.03);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  height: 100vh;
+  max-width: 600px;
+  max-height: 1100px;
+  margin: 0 auto;
+}
+
+@supports (height: 100dvh) {
+  #app { height: 100dvh; }
+}
+
+/* Top Section */
+#top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px 12px;
+  gap: 14px;
+  min-height: 0;
+}
+
+#note-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#note-name {
+  font-family: 'Anton', sans-serif;
+  font-size: 56px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+#freq {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.section-label {
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+}
+
+#octaves-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.octave-row {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+}
+
+.octave-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: var(--bg-card-glass);
+  border: 2px solid var(--border-subtle);
+  border-radius: 4px;
+  cursor: pointer;
+  min-height: 0;
+}
+
+.octave-btn .oct-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.octave-btn .oct-freq {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.octave-btn.active {
+  background: var(--note-active);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.octave-btn.active .oct-name,
+.octave-btn.active .oct-freq {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Middle Section - Volume */
+#mid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--surface-divider);
+  border-bottom: 1px solid var(--surface-divider);
+}
+
+#vol-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+#vol-label {
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  color: var(--text-secondary);
+}
+
+#vol-pct {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  background: var(--slider-track);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--slider-fill);
+  cursor: pointer;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--slider-fill);
+  cursor: pointer;
+  border: none;
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--slider-fill);
+}
+
+/* Bottom Section - Notes */
+#bottom {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 24px 32px;
+  gap: 8px;
+  min-height: 0;
+}
+
+#notes-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.note-row {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  min-height: 0;
+}
+
+.note-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid var(--border-subtle);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  min-height: 0;
+}
+
+.note-btn.natural {
+  background: var(--note-natural);
+  color: var(--text-primary);
+}
+
+.note-btn.sharp {
+  background: var(--note-sharp);
+  color: var(--text-secondary);
+}
+
+.note-btn.active {
+  background: var(--note-active);
+  border: 2px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(143, 90, 60, 0.5);
+  color: var(--accent);
+  font-weight: 700;
+}
+#splash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  height: 100vh;
+  background: var(--bg-primary);
+  cursor: pointer;
+}
+
+@supports (height: 100dvh) {
+  #splash { height: 100dvh; }
+}
+
+#splash .title {
+  font-family: 'Anton', sans-serif;
+  font-size: 48px;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+#splash .start {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 24px;
+  letter-spacing: 1px;
+}
+
+#splash .hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--text-muted);
+  position: absolute;
+  bottom: 32px;
+}
+
+#app.hidden { display: none; }
+</style>
+</head>
+<body>
+<div id="splash">
+  <div class="title">ToneKey</div>
+  <div class="start">tap to start</div>
+  <div class="hint">Touch to activate browser audio</div>
+</div>
+<div id="app" class="hidden">
+  <div id="top">
+    <div id="note-display">
+      <div id="note-name">A4</div>
+      <div id="freq">440.00 Hz</div>
+    </div>
+    <div class="section-label">OCTAVES</div>
+    <div id="octaves-grid"></div>
+  </div>
+  <div id="mid">
+    <div id="vol-header">
+      <span id="vol-label">VOL</span>
+      <span id="vol-pct">0%</span>
+    </div>
+    <input type="range" id="vol-slider" min="0" max="100" value="0">
+  </div>
+  <div id="bottom">
+    <div class="section-label">NOTE SELECT</div>
+    <div id="notes-grid"></div>
+  </div>
+</div>
+<script>
+// --- Constants ---
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const SHARP_INDICES = new Set([1, 3, 6, 8, 10]);
+const NOTE_ROWS = [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]];
+
+// --- State ---
+let currentNote = 9;   // A
+let currentOctave = 4;
+let volume = 0;
+let isPlaying = false;
+
+// --- Audio nodes ---
+let audioCtx = null;
+let oscillator = null;
+let gainNode = null;
+
+// --- Frequency & MIDI ---
+
+function getMidi(note, octave) {
+  return (octave + 1) * 12 + note;
+}
+
+function getFreq(midi) {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+function getCurrentFreq() {
+  return getFreq(getMidi(currentNote, currentOctave));
+}
+
+function isInRange(note, octave) {
+  const freq = getFreq(getMidi(note, octave));
+  return freq >= 20 && freq <= 20000;
+}
+
+function getValidOctaves(noteIndex) {
+  const octaves = [];
+  for (let oct = 0; oct <= 10; oct++) {
+    if (isInRange(noteIndex, oct)) octaves.push(oct);
+  }
+  return octaves;
+}
+
+// --- ISO 226 equal-loudness contour (for volume compensation) ---
+
+// ISO 226:2003 parameters: [frequency, af, Lu, Tf]
+const ISO226 = [
+  [20,0.532,-31.6,78.5],[25,0.506,-27.2,68.7],[31.5,0.480,-23.0,59.5],
+  [40,0.455,-19.1,51.1],[50,0.432,-15.9,44.0],[63,0.409,-13.0,37.5],
+  [80,0.387,-10.3,31.5],[100,0.367,-8.1,26.5],[125,0.349,-6.2,22.1],
+  [160,0.330,-4.5,17.9],[200,0.315,-3.1,14.4],[250,0.301,-2.0,11.4],
+  [315,0.288,-1.1,8.6],[400,0.276,-0.4,6.2],[500,0.267,0.0,4.4],
+  [630,0.259,0.3,3.0],[800,0.253,0.5,2.2],[1000,0.250,0.0,2.4],
+  [1250,0.246,-2.7,3.5],[1600,0.244,-4.1,1.7],[2000,0.243,-1.0,-1.3],
+  [2500,0.243,1.7,-4.2],[3150,0.243,2.5,-6.0],[4000,0.242,1.2,-5.4],
+  [5000,0.242,-2.1,-1.5],[6300,0.245,-7.1,6.0],[8000,0.254,-11.2,12.6],
+  [10000,0.271,-10.7,13.9],[12500,0.301,-3.1,12.3]
+];
+
+function getISO226Params(freq) {
+  const f = Math.max(20, Math.min(12500, freq));
+  let i = 0;
+  while (i < ISO226.length - 2 && ISO226[i + 1][0] < f) i++;
+  if (ISO226[i][0] === f) return { af: ISO226[i][1], Lu: ISO226[i][2], Tf: ISO226[i][3] };
+  const logF = Math.log10(f), logF1 = Math.log10(ISO226[i][0]), logF2 = Math.log10(ISO226[i+1][0]);
+  const a = (logF - logF1) / (logF2 - logF1);
+  return {
+    af: ISO226[i][1] + a * (ISO226[i+1][1] - ISO226[i][1]),
+    Lu: ISO226[i][2] + a * (ISO226[i+1][2] - ISO226[i][2]),
+    Tf: ISO226[i][3] + a * (ISO226[i+1][3] - ISO226[i][3])
+  };
+}
+
+function iso226SPL(freq, phons) {
+  const { af, Lu, Tf } = getISO226Params(freq);
+  const Af = 4.47e-3 * (Math.pow(10, 0.025 * phons) - 1.15)
+           + Math.pow(0.4 * Math.pow(10, (Tf + Lu) / 10 - 9), af);
+  return (10 / af) * Math.log10(Af) - Lu + 94;
+}
+
+// Typical small phone speaker frequency response correction (dB)
+// [frequency, correction_dB]
+const SPEAKER_CORR = [
+  [20, 15], [50, 12], [100, 8], [200, 4], [300, 1],
+  [500, 0], [800, 0], [1000, 0],
+  [1500, -2], [2000, -3], [3000, -5], [4000, -4],
+  [5000, -2], [6300, -3], [8000, -4], [10000, -4], [12500, -3], [20000, 0]
+];
+
+function getSpeakerCorrection(freq) {
+  const f = Math.max(20, Math.min(20000, freq));
+  let i = 0;
+  while (i < SPEAKER_CORR.length - 2 && SPEAKER_CORR[i + 1][0] < f) i++;
+  if (SPEAKER_CORR[i][0] === f) return SPEAKER_CORR[i][1];
+  const logF = Math.log10(f), logF1 = Math.log10(SPEAKER_CORR[i][0]), logF2 = Math.log10(SPEAKER_CORR[i+1][0]);
+  const a = (logF - logF1) / (logF2 - logF1);
+  return SPEAKER_CORR[i][1] + a * (SPEAKER_CORR[i+1][1] - SPEAKER_CORR[i][1]);
+}
+
+// Adjust volume slider to maintain perceived loudness when frequency changes
+function compensateVolume(oldFreq, newFreq) {
+  if (volume === 0 || oldFreq === newFreq) return;
+  const oldSPL = iso226SPL(oldFreq, 30) + getSpeakerCorrection(oldFreq);
+  const newSPL = iso226SPL(newFreq, 30) + getSpeakerCorrection(newFreq);
+  const dBdiff = Math.max(-20, Math.min(20, newSPL - oldSPL));
+  const ratio = Math.pow(10, dBdiff / 60);
+  volume = Math.round(Math.min(100, Math.max(0, volume * ratio)));
+  const slider = document.getElementById('vol-slider');
+  slider.value = volume;
+  updateSliderTrack();
+}
+
+// --- Audio Engine ---
+
+function getTargetGain() {
+  return Math.pow(volume / 100, 3);
+}
+
+async function ensureAudioCtx() {
+  if (!audioCtx) {
+    // Bypass iOS silent switch (iOS Safari 16.4+)
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      try { navigator.audioSession.type = 'playback'; } catch (e) {}
+    }
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0;
+    gainNode.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
+}
+
+async function playTone() {
+  if (volume === 0) return;
+  await ensureAudioCtx();
+
+  const freq = getCurrentFreq();
+  const target = getTargetGain();
+  const now = audioCtx.currentTime;
+
+  if (!isPlaying) {
+    oscillator = audioCtx.createOscillator();
+    oscillator.type = 'sine';
+    oscillator.frequency.value = freq;
+    oscillator.connect(gainNode);
+    oscillator.start();
+    gainNode.gain.setTargetAtTime(target, now, 0.005);
+    isPlaying = true;
+  } else {
+    oscillator.frequency.setTargetAtTime(freq, now, 0.01);
+    gainNode.gain.setTargetAtTime(target, now, 0.015);
+  }
+}
+
+function stopTone() {
+  if (!isPlaying || !oscillator) return;
+  try { oscillator.stop(); } catch (e) {}
+  oscillator.disconnect();
+  oscillator = null;
+  isPlaying = false;
+}
+
+function updateGain() {
+  if (!isPlaying || !gainNode) return;
+  if (volume === 0) { stopTone(); return; }
+  const now = audioCtx.currentTime;
+  gainNode.gain.cancelScheduledValues(now);
+  gainNode.gain.setTargetAtTime(getTargetGain(), now, 0.05);
+}
+
+// --- UI Rendering ---
+
+function renderOctaves() {
+  const grid = document.getElementById('octaves-grid');
+  grid.innerHTML = '';
+  const octaves = getValidOctaves(currentNote);
+  const mid = Math.ceil(octaves.length / 2);
+  const rows = [octaves.slice(0, mid), octaves.slice(mid)];
+
+  rows.forEach(rowOcts => {
+    if (!rowOcts.length) return;
+    const row = document.createElement('div');
+    row.className = 'octave-row';
+    rowOcts.forEach(oct => {
+      const freq = getFreq(getMidi(currentNote, oct));
+      const btn = document.createElement('div');
+      btn.className = 'octave-btn' + (oct === currentOctave ? ' active' : '');
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'oct-name';
+      nameSpan.textContent = NOTE_NAMES[currentNote] + oct;
+      const freqSpan = document.createElement('span');
+      freqSpan.className = 'oct-freq';
+      freqSpan.textContent = freq >= 1000 ? (freq / 1000).toFixed(1) + ' kHz' : Math.round(freq) + ' Hz';
+      btn.appendChild(nameSpan);
+      btn.appendChild(freqSpan);
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        selectOctave(oct);
+      });
+      row.appendChild(btn);
+    });
+    grid.appendChild(row);
+  });
+}
+
+function renderNotes() {
+  const grid = document.getElementById('notes-grid');
+  grid.innerHTML = '';
+  NOTE_ROWS.forEach(rowNotes => {
+    const row = document.createElement('div');
+    row.className = 'note-row';
+    rowNotes.forEach(idx => {
+      const btn = document.createElement('div');
+      const isSharp = SHARP_INDICES.has(idx);
+      btn.className = 'note-btn ' + (isSharp ? 'sharp' : 'natural') +
+                       (idx === currentNote ? ' active' : '');
+      btn.textContent = NOTE_NAMES[idx];
+      btn.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        selectNote(idx);
+      });
+      row.appendChild(btn);
+    });
+    grid.appendChild(row);
+  });
+}
+
+function updateDisplay() {
+  document.getElementById('note-name').textContent =
+    NOTE_NAMES[currentNote] + currentOctave;
+  document.getElementById('freq').textContent =
+    getCurrentFreq().toFixed(2) + ' Hz';
+}
+
+function updateSliderTrack() {
+  const slider = document.getElementById('vol-slider');
+  const pct = slider.value;
+  slider.style.background =
+    'linear-gradient(to right, var(--slider-fill) ' + pct + '%, var(--slider-track) ' + pct + '%)';
+  document.getElementById('vol-pct').textContent = pct + '%';
+}
+
+// --- Actions ---
+
+async function selectNote(noteIdx) {
+  const oldFreq = getCurrentFreq();
+  currentNote = noteIdx;
+  const valid = getValidOctaves(noteIdx);
+  if (!valid.includes(currentOctave)) {
+    currentOctave = valid.reduce((a, b) =>
+      Math.abs(b - currentOctave) < Math.abs(a - currentOctave) ? b : a
+    );
+  }
+  compensateVolume(oldFreq, getCurrentFreq());
+  updateDisplay();
+  renderOctaves();
+  renderNotes();
+  await playTone();
+}
+
+async function selectOctave(oct) {
+  const oldFreq = getCurrentFreq();
+  currentOctave = oct;
+  compensateVolume(oldFreq, getCurrentFreq());
+  updateDisplay();
+  renderOctaves();
+  await playTone();
+}
+
+// --- Init ---
+
+function init() {
+  renderOctaves();
+  renderNotes();
+  updateDisplay();
+  updateSliderTrack();
+
+  const slider = document.getElementById('vol-slider');
+  slider.addEventListener('input', () => {
+    volume = parseInt(slider.value);
+    updateSliderTrack();
+    if (!isPlaying && volume > 0) {
+      playTone();
+    } else {
+      updateGain();
+    }
+  });
+
+  // Splash screen: tap to activate audio
+  document.getElementById('splash').addEventListener('pointerdown', async () => {
+    await ensureAudioCtx();
+    if (audioCtx.state !== 'running') return;
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('app').classList.remove('hidden');
+  });
+
+  // Re-activate audio when returning from background
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
